@@ -61,7 +61,20 @@ export default function App() {
   const [isDark, setIsDark] = useState(() => loadFromStorage('cc_theme', 'dark') === 'dark');
   const [isInline, setIsInline] = useState(false);
   const [isWordWrap, setIsWordWrap] = useState(() => loadFromStorage('cc_wordwrap', 'on') === 'on');
-  const [showAbout, setShowAbout] = useState(true);
+  const [showAbout, setShowAbout] = useState(false);
+
+  // Close about modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowAbout(false);
+      }
+    };
+    if (showAbout) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAbout]);
 
   // Editor content — starts EMPTY, restored from localStorage only if saved
   const [original] = useState(() => loadFromStorage('cc_original', ''));
@@ -331,9 +344,6 @@ export default function App() {
               title="Toggle Word Wrap according to view width"
               style={{ borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M2 3.5h12v1H2v-1zm0 4h9a2.5 2.5 0 010 5H8v-1.5l-2.5 2 2.5 2V14.5h3a3.5 3.5 0 000-7H2v-1zm0 6h4v1H2v-1z"/>
-              </svg>
               Wrap: {isWordWrap ? 'On' : 'Off'}
             </button>
           </div>
@@ -352,6 +362,17 @@ export default function App() {
               </svg>
             )}
             {isDark ? 'Light' : 'Dark'}
+          </button>
+
+          <button
+            className={`toolbar-btn btn-secondary ${showAbout ? 'active' : ''}`}
+            onClick={() => setShowAbout((prev) => !prev)}
+            title="About Code Compare & Links"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0-1A6 6 0 1 0 8 2a6 6 0 0 0 0 12zM8 4a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zm-.75 3.5h1.5v4.5h-1.5v-4.5z"/>
+            </svg>
+            About
           </button>
 
           <div className="toolbar-divider" />
@@ -392,21 +413,53 @@ export default function App() {
         </div>
       </header>
 
-      {/* About Section */}
+      {/* About Modal */}
       {showAbout && (
-        <section className="about-section">
-          <div className="about-content">
-            <div className="about-info">
-              <h2 className="about-title">
-                <span className="about-icon">⟺</span>
-                Code Compare
-              </h2>
-              <p className="about-description">
-                A powerful browser-based code comparison tool. Paste your code on both sides and
-                instantly see differences highlighted with syntax-aware formatting.
-                Supports 18+ languages including HTML, JSON, JavaScript, Python, and more.
-              </p>
+        <div className="about-overlay" onClick={() => setShowAbout(false)}>
+          <div className="about-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="about-modal-header">
+              <div className="about-modal-title-group">
+                <h2 className="about-title">
+                  <span className="about-icon">⟺</span>
+                  Code Compare
+                </h2>
+                <span className="about-badge">v1.0.0</span>
+              </div>
+              <button
+                className="about-close"
+                onClick={() => setShowAbout(false)}
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
             </div>
+
+            <p className="about-description">
+              A modern, privacy-friendly browser-based code comparison tool powered by Monaco Editor.
+              Compare code, JSON, HTML, and text with instant visual diff highlighting, side-by-side or
+              inline viewing, and responsive viewport text wrapping.
+            </p>
+
+            <div className="about-features">
+              <div className="about-feature-item">
+                <span className="about-feature-check">✓</span>
+                <span><strong>18+ Languages</strong> (HTML, JSON, JS, TS, Python, CSS, SQL, XML, YAML...)</span>
+              </div>
+              <div className="about-feature-item">
+                <span className="about-feature-check">✓</span>
+                <span><strong>Diff Modes</strong>: Side-by-Side & Inline</span>
+              </div>
+              <div className="about-feature-item">
+                <span className="about-feature-check">✓</span>
+                <span><strong>Word Wrap</strong>: Automatic wrapping to view width</span>
+              </div>
+              <div className="about-feature-item">
+                <span className="about-feature-check">✓</span>
+                <span><strong>100% Private</strong>: Code runs entirely in your browser</span>
+              </div>
+            </div>
+
+            <div className="about-section-heading">Websites & Projects</div>
             <div className="about-links">
               {ABOUT_LINKS.map((link) => (
                 <a
@@ -417,7 +470,7 @@ export default function App() {
                   className="about-link-card"
                 >
                   <span className="about-link-icon">{link.icon}</span>
-                  <div>
+                  <div className="about-link-info">
                     <span className="about-link-label">{link.label}</span>
                     <span className="about-link-desc">{link.description}</span>
                   </div>
@@ -428,14 +481,7 @@ export default function App() {
               ))}
             </div>
           </div>
-          <button
-            className="about-close"
-            onClick={() => setShowAbout(false)}
-            title="Close about section"
-          >
-            ✕
-          </button>
-        </section>
+        </div>
       )}
 
       {/* Editor labels — only in side-by-side mode */}
