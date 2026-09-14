@@ -60,6 +60,7 @@ export default function App() {
   const [language, setLanguage] = useState(() => loadFromStorage('cc_language', 'json'));
   const [isDark, setIsDark] = useState(() => loadFromStorage('cc_theme', 'dark') === 'dark');
   const [isInline, setIsInline] = useState(false);
+  const [isWordWrap, setIsWordWrap] = useState(() => loadFromStorage('cc_wordwrap', 'on') === 'on');
   const [showAbout, setShowAbout] = useState(true);
 
   // Editor content — starts EMPTY, restored from localStorage only if saved
@@ -161,6 +162,14 @@ export default function App() {
     setIsInline(true);
   };
 
+  const handleWordWrapToggle = () => {
+    setIsWordWrap((prev) => {
+      const next = !prev;
+      saveToStorage('cc_wordwrap', next ? 'on' : 'off');
+      return next;
+    });
+  };
+
   const handleSwap = () => {
     if (!diffEditorRef.current) return;
     try {
@@ -244,6 +253,20 @@ export default function App() {
                 Inline
               </button>
             </div>
+          </div>
+
+          <div className="toolbar-group">
+            <button
+              className={`toggle-btn ${isWordWrap ? 'active' : ''}`}
+              onClick={handleWordWrapToggle}
+              title="Toggle Word Wrap according to view width"
+              style={{ borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M2 3.5h12v1H2v-1zm0 4h9a2.5 2.5 0 010 5H8v-1.5l-2.5 2 2.5 2V14.5h3a3.5 3.5 0 000-7H2v-1zm0 6h4v1H2v-1z"/>
+              </svg>
+              Wrap: {isWordWrap ? 'On' : 'Off'}
+            </button>
           </div>
         </div>
 
@@ -374,6 +397,9 @@ export default function App() {
             ignoreTrimWhitespace: false,
             renderIndicators: true,
             padding: { top: 8 },
+            wordWrap: isWordWrap ? 'on' : 'off',
+            diffWordWrap: isWordWrap ? 'on' : 'off',
+            wrappingStrategy: 'advanced',
           }}
           loading={
             <div className="editor-loading">Loading editor...</div>
