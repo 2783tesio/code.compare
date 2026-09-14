@@ -80,8 +80,32 @@ export default function App() {
     diffEditorRef.current = editor;
 
     try {
+      const wrapVal = isWordWrap ? 'on' : 'off';
+      editor.updateOptions({
+        renderSideBySide: !isInline,
+        diffWordWrap: wrapVal,
+        wordWrap: wrapVal,
+        wrappingStrategy: 'advanced',
+        wordWrapOverride1: wrapVal,
+        wordWrapOverride2: wrapVal,
+      });
+
       const origEditor = editor.getOriginalEditor();
       const modEditor = editor.getModifiedEditor();
+
+      origEditor.updateOptions({
+        wordWrap: wrapVal,
+        wrappingStrategy: 'advanced',
+        wordWrapOverride1: wrapVal,
+        wordWrapOverride2: wrapVal,
+      });
+
+      modEditor.updateOptions({
+        wordWrap: wrapVal,
+        wrappingStrategy: 'advanced',
+        wordWrapOverride1: wrapVal,
+        wordWrapOverride2: wrapVal,
+      });
 
       // Track focus for undo/redo
       origEditor.onDidFocusEditorWidget(() => {
@@ -105,10 +129,55 @@ export default function App() {
           saveToStorage('cc_modified', modModel.getValue());
         });
       }
+
+      // Initial layout
+      setTimeout(() => editor.layout(), 100);
     } catch (err) {
       console.warn('Editor mount setup error:', err);
     }
-  }, []);
+  }, [isWordWrap, isInline]);
+
+  // Dynamically update wordWrap, side-by-side, and layout whenever isWordWrap or isInline changes
+  useEffect(() => {
+    if (!diffEditorRef.current) return;
+    try {
+      const editor = diffEditorRef.current;
+      const wrapVal = isWordWrap ? 'on' : 'off';
+
+      editor.updateOptions({
+        renderSideBySide: !isInline,
+        diffWordWrap: wrapVal,
+        wordWrap: wrapVal,
+        wrappingStrategy: 'advanced',
+        wordWrapOverride1: wrapVal,
+        wordWrapOverride2: wrapVal,
+      });
+
+      const origEditor = editor.getOriginalEditor?.();
+      if (origEditor) {
+        origEditor.updateOptions({
+          wordWrap: wrapVal,
+          wrappingStrategy: 'advanced',
+          wordWrapOverride1: wrapVal,
+          wordWrapOverride2: wrapVal,
+        });
+      }
+
+      const modEditor = editor.getModifiedEditor?.();
+      if (modEditor) {
+        modEditor.updateOptions({
+          wordWrap: wrapVal,
+          wrappingStrategy: 'advanced',
+          wordWrapOverride1: wrapVal,
+          wordWrapOverride2: wrapVal,
+        });
+      }
+
+      setTimeout(() => editor.layout(), 50);
+    } catch (err) {
+      console.warn('Failed to update diff editor options:', err);
+    }
+  }, [isWordWrap, isInline]);
 
   // Get the active editor (whichever was last focused)
   const getActiveEditor = useCallback(() => {
@@ -400,6 +469,9 @@ export default function App() {
             wordWrap: isWordWrap ? 'on' : 'off',
             diffWordWrap: isWordWrap ? 'on' : 'off',
             wrappingStrategy: 'advanced',
+            wordWrapOverride1: isWordWrap ? 'on' : 'off',
+            wordWrapOverride2: isWordWrap ? 'on' : 'off',
+            useInlineViewWhenSpaceIsLimited: false,
           }}
           loading={
             <div className="editor-loading">Loading editor...</div>

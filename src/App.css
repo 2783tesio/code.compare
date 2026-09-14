@@ -393,6 +393,9 @@ body.light-theme .label-modified {
 .editor-container {
   flex: 1;
   overflow: hidden;
+  position: relative;
+  min-height: 0;
+  width: 100%;
 }
 
 .editor-loading {
